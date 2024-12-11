@@ -6,7 +6,6 @@ function App() {
   const [columns, setColumns] = useState([]);
   const [columnsToMask, setColumnsToMask] = useState([]);
   const [isFileUploaded, setIsFileUploaded] = useState(false);
-  const [isMaskingEnabled, setIsMaskingEnabled] = useState(false);
 
   const handleFileUpload = async (e) => {
     const uploadedFile = e.target.files[0];
@@ -25,7 +24,6 @@ function App() {
           setFile(uploadedFile);
           setColumns(data.columns);
           setIsFileUploaded(true);
-          setIsMaskingEnabled(true);
         } else {
           alert(data.error || "Failed to detect columns.");
         }
@@ -97,8 +95,12 @@ function App() {
         </div>
       )}
 
-      {isMaskingEnabled && (
-        <button className="mask-button" onClick={handleMasking}>
+      {isFileUploaded && (
+        <button
+          className="mask-button"
+          onClick={handleMasking}
+          disabled={columnsToMask.length === 0}
+        >
           Mask Data
         </button>
       )}
@@ -112,6 +114,9 @@ function App() {
 }
 
 export default App;
+
+
+
 
 
 
