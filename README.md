@@ -1,6 +1,6 @@
 # SecurMask-Beta
 
-**SecureMask-Beta** is a beta version of a secure web application designed for masking and unmasking sensitive data in CSV and XLSX files. This tool is built to help organizations and individuals protect sensitive information while maintaining data usability.
+**SecurMask-Beta** is a beta version of a secure web application designed for masking and unmasking sensitive data in CSV and XLSX files. This tool is built to help organizations and individuals protect sensitive information while maintaining data usability.
 
 ## Features
 
@@ -29,8 +29,8 @@
 
 1. Clone the repository and navigate to the `backend` folder:
    ```bash
-   git clone https://github.com/your-username/SecureMask-Beta.git
-   cd SecureMask-Beta/backend
+   git clone https://github.com/ird1natris/SecurMask-Beta.git
+   cd SecurMask-Beta/backend
    ```
 
 2. Create and activate a virtual environment (optional):
