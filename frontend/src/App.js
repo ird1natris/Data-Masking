@@ -104,7 +104,7 @@ function App() {
       )}
 
       <div className="footer">
-        <p>Created with ❤️ by SecurMask | <a href="#">Privacy Policy</a></p>
+        <p>Created with ❤️ by 𝐒𝐭✰𝐫𝐠𝐢𝐫𝐥</p>
         <p>&copy; 2024 SecurMask. All rights reserved.</p>
       </div>
     </div>
