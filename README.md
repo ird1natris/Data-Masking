@@ -79,4 +79,23 @@ The frontend app will run at `http://localhost:3000`.
 4. Choose the action (mask or unmask) and submit the file.
 5. Download the processed file with the changes applied.
 
+## Contributing
+
+1. Clone the repository:
+```bash
+git clone https://github.com/ird1natris/SecurMask-Beta.git  
+cd SecurMask-Beta  
+```
+2. Work on the project, making changes locally.
+3. Push changes to the repository:
+```bash
+git add .  
+git commit -m "[TYPE] Your commit message"  
+git push origin main  
+```
+4. Ensure to pull any updates before working further:
+```bash
+git pull origin main  
+```
+
 
