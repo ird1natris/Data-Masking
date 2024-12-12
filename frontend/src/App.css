@@ -121,12 +121,12 @@ p {
 
 .checkbox-item input[type="checkbox"] {
   margin-right: 10px;
-  width: 30px; /* Larger checkboxes */
-  height: 30px;
+  width: 20px; /* Larger checkboxes */
+  height: 20px;
 }
 
 .checkbox-item label {
-  font-size: 1.3rem; /* Larger text for labels */
+  font-size: 1.0rem; /* Larger text for labels */
   font-weight: 500;
 }
 
