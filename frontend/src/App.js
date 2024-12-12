@@ -72,12 +72,10 @@ function App() {
   return (
     <div className="container">
       <h1>SecurMask</h1>
-      <p>Upload your file and mask sensitive data securely.</p>
-
+      <p>Upload your file and securely mask sensitive data.</p>
       <div className="upload-section">
         <input type="file" accept=".csv, .xlsx" onChange={handleFileUpload} />
       </div>
-
       {isFileUploaded && (
         <div className="checkbox-list">
           <h3>Select columns to mask:</h3>
@@ -94,17 +92,11 @@ function App() {
           ))}
         </div>
       )}
-
-      {isFileUploaded && (
-        <button
-          className="mask-button"
-          onClick={handleMasking}
-          disabled={columnsToMask.length === 0}
-        >
+      {columnsToMask.length > 0 && (
+        <button className="mask-button" onClick={handleMasking}>
           Mask Data
         </button>
       )}
-
       <div className="footer">
         <p>Created with ❤️ by 𝐒𝐭✰𝐫𝐠𝐢𝐫𝐥</p>
         <p>&copy; 2024 SecurMask. All rights reserved.</p>
@@ -114,6 +106,10 @@ function App() {
 }
 
 export default App;
+
+
+
+
 
 
 

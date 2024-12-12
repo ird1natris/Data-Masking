@@ -39,3 +39,39 @@
 2024-12-12 05:31:50,271 - 127.0.0.1 - - [12/Dec/2024 05:31:50] "POST /detect_columns HTTP/1.1" 200 -
 2024-12-12 05:37:19,920 -  * Detected change in 'C:\\Users\\User\\Desktop\\FYP\\SecurMask-Beta\\backend\\app.py', reloading
 2024-12-12 05:37:20,277 -  * Restarting with stat
+2024-12-12 05:45:43,081 - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-12-12 05:45:43,081 - [33mPress CTRL+C to quit[0m
+2024-12-12 05:45:43,086 -  * Restarting with stat
+2024-12-12 05:45:44,311 -  * Debugger is active!
+2024-12-12 05:45:44,315 -  * Debugger PIN: 374-701-869
+2024-12-12 05:45:50,729 - 127.0.0.1 - - [12/Dec/2024 05:45:50] "POST /detect_columns HTTP/1.1" 200 -
+2024-12-12 13:53:59,013 - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-12-12 13:53:59,013 - [33mPress CTRL+C to quit[0m
+2024-12-12 13:53:59,013 -  * Restarting with stat
+2024-12-12 13:53:59,908 -  * Debugger is active!
+2024-12-12 13:53:59,920 -  * Debugger PIN: 374-701-869
+2024-12-12 13:54:29,382 - 127.0.0.1 - - [12/Dec/2024 13:54:29] "POST /detect_columns HTTP/1.1" 200 -
+2024-12-12 13:54:50,325 - 127.0.0.1 - - [12/Dec/2024 13:54:50] "POST /detect_columns HTTP/1.1" 200 -
+2024-12-12 13:55:18,681 -  * Detected change in 'C:\\Users\\User\\Desktop\\FYP\\SecurMask-Beta\\backend\\app.py', reloading
+2024-12-12 13:55:19,021 -  * Restarting with stat
+2024-12-12 14:15:11,370 - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-12-12 14:15:11,371 - [33mPress CTRL+C to quit[0m
+2024-12-12 14:15:11,372 -  * Restarting with stat
+2024-12-12 14:15:12,290 -  * Debugger is active!
+2024-12-12 14:15:12,290 -  * Debugger PIN: 374-701-869
+2024-12-12 14:15:21,409 - 127.0.0.1 - - [12/Dec/2024 14:15:21] "POST /detect_columns HTTP/1.1" 200 -
+2024-12-12 14:16:54,814 - 127.0.0.1 - - [12/Dec/2024 14:16:54] "POST /detect_columns HTTP/1.1" 200 -
+2024-12-12 14:19:21,640 -  * Detected change in 'C:\\Users\\User\\Desktop\\FYP\\SecurMask-Beta\\backend\\app.py', reloading
+2024-12-12 14:19:21,838 -  * Restarting with stat
+2024-12-12 14:19:27,477 - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-12-12 14:19:27,477 - [33mPress CTRL+C to quit[0m
+2024-12-12 14:19:27,479 -  * Restarting with stat
+2024-12-12 14:19:28,877 -  * Debugger is active!
+2024-12-12 14:19:28,882 -  * Debugger PIN: 374-701-869
+2024-12-12 14:19:35,483 - 127.0.0.1 - - [12/Dec/2024 14:19:35] "POST /detect_columns HTTP/1.1" 200 -
+2024-12-12 14:25:57,470 -  * Detected change in 'C:\\Users\\User\\Desktop\\FYP\\SecurMask-Beta\\backend\\app.py', reloading
+2024-12-12 14:25:57,619 -  * Restarting with stat
