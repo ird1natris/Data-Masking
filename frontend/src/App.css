@@ -153,6 +153,22 @@ p {
   .mask-button {
     max-width: 100%;
   }
+
+  /* Spinner container */
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+}
+
+/* Optional: Adjust the spinner size and appearance */
+.spinner-container span {
+  color: white;
+  font-weight: 500;
+}
+
 }
 
 

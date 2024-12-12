@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./App.css";
 import Swal from "sweetalert2";
+import { ClipLoader } from "react-spinners"; // Import the spinner
 
 function App() {
   const [file, setFile] = useState(null);
@@ -8,6 +9,7 @@ function App() {
   const [columnsToMask, setColumnsToMask] = useState([]);
   const [isFileUploaded, setIsFileUploaded] = useState(false);
   const [isMaskingInProgress, setIsMaskingInProgress] = useState(false); // To track masking progress
+  const [loadingMessage, setLoadingMessage] = useState(""); // Optional: Add message during loading
 
   const handleFileUpload = async (e) => {
     const uploadedFile = e.target.files[0];
@@ -72,6 +74,7 @@ function App() {
     formData.append("columns", JSON.stringify(columnsToMask));
 
     setIsMaskingInProgress(true); // Show progress indicator
+    setLoadingMessage("Masking data... Please wait!"); // Optional message
 
     try {
       const response = await fetch("http://localhost:5000/mask_data", {
@@ -105,6 +108,7 @@ function App() {
       });
     } finally {
       setIsMaskingInProgress(false); // Hide progress indicator
+      setLoadingMessage(""); // Clear loading message
     }
   };
 
@@ -137,7 +141,14 @@ function App() {
           onClick={handleMasking}
           disabled={isMaskingInProgress} // Disable the button while masking
         >
-          {isMaskingInProgress ? "Masking..." : "Mask Data"}
+          {isMaskingInProgress ? (
+            <div className="spinner-container">
+              <ClipLoader color="#ffffff" size={30} />
+              <span>{loadingMessage}</span>
+            </div>
+          ) : (
+            "Mask Data"
+          )}
         </button>
       )}
       <div className="footer">
@@ -149,6 +160,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
