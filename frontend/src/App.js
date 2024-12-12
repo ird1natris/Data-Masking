@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import Swal from "sweetalert2";
-import "sweetalert2/dist/sweetalert2.min.css";
 import "./App.css";
+import Swal from "sweetalert2";
 
 function App() {
   const [file, setFile] = useState(null);
@@ -28,16 +27,14 @@ function App() {
           setIsFileUploaded(true);
           Swal.fire({
             icon: "success",
-            title: "File Uploaded Successfully",
-            text: `Detected columns: ${data.columns.join(", ")}`,
-            confirmButtonColor: "#6a1b9a",
+            title: "File uploaded!",
+            text: "Columns detected successfully.",
           });
         } else {
           Swal.fire({
             icon: "error",
             title: "Error",
             text: data.error || "Failed to detect columns.",
-            confirmButtonColor: "#ff4081",
           });
         }
       } catch (error) {
@@ -45,8 +42,7 @@ function App() {
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: "Error uploading file. Please try again later.",
-          confirmButtonColor: "#ff4081",
+          text: "Error uploading file.",
         });
       }
     }
@@ -76,9 +72,9 @@ function App() {
         if (data.file_path) {
           Swal.fire({
             icon: "success",
-            title: "Data Masked Successfully",
-            text: "Your file is ready for download.",
-            confirmButtonColor: "#6a1b9a",
+            title: "Data Masked!",
+            text: "Your masked file is ready for download.",
+            confirmButtonText: "Download",
           }).then(() => {
             window.location.href = `http://localhost:5000${data.file_path}`;
           });
@@ -87,7 +83,6 @@ function App() {
             icon: "error",
             title: "Error",
             text: data.error || "Error masking data.",
-            confirmButtonColor: "#ff4081",
           });
         }
       } catch (error) {
@@ -95,16 +90,14 @@ function App() {
         Swal.fire({
           icon: "error",
           title: "Error",
-          text: "Error masking data. Please try again later.",
-          confirmButtonColor: "#ff4081",
+          text: "Error masking data.",
         });
       }
     } else {
       Swal.fire({
         icon: "warning",
-        title: "No Columns Selected",
+        title: "No columns selected",
         text: "Please select at least one column to mask.",
-        confirmButtonColor: "#ff4081",
       });
     }
   };
@@ -132,7 +125,7 @@ function App() {
           ))}
         </div>
       )}
-      {columnsToMask.length > 0 && (
+      {isFileUploaded && (
         <button className="mask-button" onClick={handleMasking}>
           Mask Data
         </button>
@@ -146,6 +139,9 @@ function App() {
 }
 
 export default App;
+
+
+
 
 
 
