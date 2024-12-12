@@ -7,6 +7,7 @@ function App() {
   const [columns, setColumns] = useState([]);
   const [columnsToMask, setColumnsToMask] = useState([]);
   const [isFileUploaded, setIsFileUploaded] = useState(false);
+  const [isMaskingInProgress, setIsMaskingInProgress] = useState(false); // To track masking progress
 
   const handleFileUpload = async (e) => {
     const uploadedFile = e.target.files[0];
@@ -57,48 +58,53 @@ function App() {
   };
 
   const handleMasking = async () => {
-    if (columnsToMask.length > 0) {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("columns", JSON.stringify(columnsToMask));
-
-      try {
-        const response = await fetch("http://localhost:5000/mask_data", {
-          method: "POST",
-          body: formData,
-        });
-
-        const data = await response.json();
-        if (data.file_path) {
-          Swal.fire({
-            icon: "success",
-            title: "Data Masked!",
-            text: "Your masked file is ready for download.",
-            confirmButtonText: "Download",
-          }).then(() => {
-            window.location.href = `http://localhost:5000${data.file_path}`;
-          });
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: data.error || "Error masking data.",
-          });
-        }
-      } catch (error) {
-        console.error(error);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Error masking data.",
-        });
-      }
-    } else {
+    if (columnsToMask.length === 0) {
       Swal.fire({
         icon: "warning",
         title: "No columns selected",
         text: "Please select at least one column to mask.",
       });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("columns", JSON.stringify(columnsToMask));
+
+    setIsMaskingInProgress(true); // Show progress indicator
+
+    try {
+      const response = await fetch("http://localhost:5000/mask_data", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (response.ok && data.file_path) {
+        Swal.fire({
+          icon: "success",
+          title: "Data Masked!",
+          text: "Your masked file is ready for download.",
+          confirmButtonText: "Download",
+        }).then(() => {
+          window.location.href = `http://localhost:5000${data.file_path}`;
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: data.error || "Error masking data.",
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error masking data.",
+      });
+    } finally {
+      setIsMaskingInProgress(false); // Hide progress indicator
     }
   };
 
@@ -126,8 +132,12 @@ function App() {
         </div>
       )}
       {isFileUploaded && (
-        <button className="mask-button" onClick={handleMasking}>
-          Mask Data
+        <button
+          className="mask-button"
+          onClick={handleMasking}
+          disabled={isMaskingInProgress} // Disable the button while masking
+        >
+          {isMaskingInProgress ? "Masking..." : "Mask Data"}
         </button>
       )}
       <div className="footer">
@@ -139,6 +149,10 @@ function App() {
 }
 
 export default App;
+
+
+
+
 
 
 

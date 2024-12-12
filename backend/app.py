@@ -6,6 +6,7 @@ import re
 import random
 import string
 import json
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 CORS(app)
@@ -19,6 +20,14 @@ app.config['UPLOAD_FOLDER_MASKED'] = UPLOAD_FOLDER_MASKED
 # Create directories if they do not exist
 os.makedirs(UPLOAD_FOLDER_ORIGINAL, exist_ok=True)
 os.makedirs(UPLOAD_FOLDER_MASKED, exist_ok=True)
+
+ALLOWED_EXTENSIONS = {'csv', 'xlsx'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def sanitize_filename(filename):
+    return secure_filename(filename)
 
 def mask_data(value, column_name=None):
     if isinstance(value, str):
@@ -38,10 +47,10 @@ def mask_data(value, column_name=None):
 @app.route("/detect_columns", methods=["POST"])
 def detect_columns():
     file = request.files.get("file")
-    if not file:
-        return jsonify({"error": "No file uploaded"}), 400
+    if not file or not allowed_file(file.filename):
+        return jsonify({"error": "No file uploaded or file format not supported"}), 400
 
-    input_path = os.path.join(UPLOAD_FOLDER_ORIGINAL, file.filename)
+    input_path = os.path.join(UPLOAD_FOLDER_ORIGINAL, sanitize_filename(file.filename))
     file.save(input_path)
 
     try:
@@ -49,8 +58,6 @@ def detect_columns():
             df = pd.read_csv(input_path)
         elif file.filename.endswith('.xlsx'):
             df = pd.read_excel(input_path)
-        else:
-            return jsonify({"error": "File format not supported"}), 400
 
         columns = df.columns.tolist()
         return jsonify({"columns": columns})
@@ -67,7 +74,7 @@ def mask_data_route():
 
     try:
         columns_to_mask = json.loads(columns_to_mask)
-        input_path = os.path.join(UPLOAD_FOLDER_ORIGINAL, file.filename)
+        input_path = os.path.join(UPLOAD_FOLDER_ORIGINAL, sanitize_filename(file.filename))
         file.save(input_path)
 
         if file.filename.endswith('.csv'):
@@ -82,23 +89,27 @@ def mask_data_route():
                 print(f"Warning: Column {column} not found in DataFrame.")
 
         # Save the masked file in the masked folder
-        masked_file_path = os.path.join(UPLOAD_FOLDER_MASKED, f"masked_{file.filename}")
+        masked_file_path = os.path.join(UPLOAD_FOLDER_MASKED, f"masked_{sanitize_filename(file.filename)}")
         if file.filename.endswith('.csv'):
             df.to_csv(masked_file_path, index=False)
         elif file.filename.endswith('.xlsx'):
             df.to_excel(masked_file_path, index=False)
 
-        return jsonify({"message": "File processed successfully", "file_path": f"/uploads/masked/{f'masked_{file.filename}'}"})
+        return jsonify({"file_path": f"/{masked_file_path.replace(os.sep, '/')}"}), 200
     except Exception as e:
-        print(f"Error occurred: {str(e)}")
-        return jsonify({"error": f"Failed to process the file. Error: {str(e)}"}), 500
+        return jsonify({"error": f"Error masking data. {str(e)}"}), 500
 
-@app.route('/uploads/masked/<filename>')
-def download_masked_file(filename):
+@app.route("/uploads/masked/<filename>")
+def download_file(filename):
     return send_from_directory(UPLOAD_FOLDER_MASKED, filename)
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+
+
+
 
 
 
