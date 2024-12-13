@@ -32,6 +32,21 @@ def allowed_file(filename):
 def sanitize_filename(filename):
     return secure_filename(filename)
 
+# Keywords to detect relevant columns for masking
+MASK_KEYWORDS = {
+    'name': ['name'],
+    'address': ['address'],
+    'email': ['email'],
+    'phone': ['phone'],
+    'ic': ['ic', 'id', 'passport'],
+    'salary': ['salary'],
+    'age': ['age'],
+    'cgpa': ['cgpa'],
+    'date': ['birthdate', 'dob'],
+    'place_of_birth': ['place of birth', 'birth place', 'city of birth'],
+    'department': ['department', 'class']
+}
+
 def mask_email(email):
     local, domain = email.split("@")
     local_masked = local[0] + '*' * (len(local) - 2) + local[-1] if len(local) > 2 else '*' * len(local)
@@ -41,70 +56,109 @@ def mask_phone(phone):
     return re.sub(r'\d', '*', phone[:-2]) + phone[-2:]
 
 def mask_text(value):
-    """
-    Mask general text data (e.g., names, addresses) partially.
-    Only show first and last character, replace the middle part with asterisks.
-    """
+    """ Mask general text data (e.g., names, addresses) partially. """
     if len(value) > 2:
         return value[0] + '*' * (len(value) - 2) + value[-1]
     else:
         return '*' * len(value)
 
 def mask_numeric(value):
-    """
-    Mask numeric data (e.g., phone numbers, IC numbers) by keeping only the first and last digits visible.
-    """
-    num_str = str(int(value))  # Convert to string to handle the digits properly
+    """ Mask numeric data (e.g., phone numbers, IC numbers) by keeping only the first and last digits visible. """
+    num_str = ''.join(re.findall(r'\d', str(value)))  # Remove non-numeric characters
     if len(num_str) > 2:
         return num_str[0] + '*' * (len(num_str) - 2) + num_str[-1]
     else:
         return '*' * len(num_str)
 
+def randomize_salary(value):
+    """ Randomize salary data. """
+    if isinstance(value, (int, float)):
+        return random.randint(2000, 10000)  # Random salary between RM2000 and RM10000
+    return value
+
 def anonymize_name_or_address(value, column_name=None):
-    """
-    Anonymize name and address-related data by using Faker to generate random fake data.
-    """
+    """ Anonymize name and address-related data by using Faker to generate random fake data. """
     if column_name:
-        # Check if it's a name or address column (case insensitive)
         if 'name' in column_name.lower():
-            return fake.name()  # Generate a fake name
+            return fake.name()
         elif 'address' in column_name.lower():
-            return fake.address()  # Generate a fake address
+            return fake.address()
+        elif 'place of birth' in column_name.lower() or 'birth place' in column_name.lower():
+            return fake.city()  # Mask place of birth with random city
+        elif 'department' in column_name.lower() or 'class' in column_name.lower():
+            return fake.word()  # Mask department/class with a random word
     return value
 
 def mask_date(value):
     """
-    Mask date data by replacing it with a random date or placeholder.
+    Mask date data by replacing it with a random date within a reasonable range.
+    If the value is not a valid date, it will return the original value.
     """
+    if isinstance(value, str):
+        # Try parsing the string as a date first
+        try:
+            value = datetime.datetime.strptime(value, "%d/%m/%Y")
+        except ValueError:
+            try:
+                value = datetime.datetime.strptime(value, "%Y-%m-%d")
+            except ValueError:
+                return value  # Return original value if it's not a valid date format
+
     if isinstance(value, datetime.datetime):
-        # Mask date by replacing it with a random date within a reasonable range, or a placeholder.
-        return fake.date_of_birth(minimum_age=18, maximum_age=100).strftime("%Y-%m-%d")
+        # Return a random date within a reasonable range (for Birth Date column)
+        return fake.date_of_birth(minimum_age=18, maximum_age=100).strftime("%d/%m/%Y")
+    
+    return value
+
+
+def anonymize_age(value):
+    """ Anonymize age by generating a random age between 18 and 100. """
+    if isinstance(value, int):
+        return random.randint(18, 100)  # Randomize age between 18 and 100
     return value
 
 def mask_data(value, column_name=None):
-    """
-    Mask data based on the type of value and column name.
-    Apply appropriate masking logic for text, numeric, and date data.
-    """
+    """ Mask data based on the type of value and column name. """
     if isinstance(value, str):
         value = value.strip()
 
-        # Check if the column is a name or address column (you can adjust these checks as needed)
-        if column_name and ('name' in column_name.lower() or 'address' in column_name.lower()):
+        # Anonymize name or address if matching relevant columns
+        if column_name and any(keyword in column_name.lower() for keyword in MASK_KEYWORDS['name']):
             return anonymize_name_or_address(value, column_name)
-
-        if re.match(r"[^@]+@[^@]+\.[^@]+", value):  # Detect email
-            return mask_email(value)
-        elif re.match(r'\d{10,}', value):  # Detect phone numbers
-            return mask_phone(value)
+        elif column_name and any(keyword in column_name.lower() for keyword in MASK_KEYWORDS['address']):
+            return anonymize_name_or_address(value, column_name)
+        elif column_name and any(keyword in column_name.lower() for keyword in MASK_KEYWORDS['place_of_birth']):
+            return anonymize_name_or_address(value, column_name)  # Mask place of birth as a name/address
+        elif column_name and any(keyword in column_name.lower() for keyword in MASK_KEYWORDS['department']):
+            return anonymize_name_or_address(value, column_name)  # Anonymize department/class with random name
+        elif column_name and any(keyword in column_name.lower() for keyword in MASK_KEYWORDS['email']):
+            return mask_email(value)  # Mask email
+        elif column_name and any(keyword in column_name.lower() for keyword in MASK_KEYWORDS['phone']):
+            return mask_phone(value)  # Mask phone number
+        elif column_name and any(keyword in column_name.lower() for keyword in MASK_KEYWORDS['ic']):
+            return mask_numeric(value)  # Mask IC number
+        elif column_name and any(keyword in column_name.lower() for keyword in MASK_KEYWORDS['salary']):
+            return randomize_salary(value)  # Randomize salary
+        elif column_name and any(keyword in column_name.lower() for keyword in MASK_KEYWORDS['date']):
+            return mask_date(value)  # Mask birth date
+        elif column_name and any(keyword in column_name.lower() for keyword in MASK_KEYWORDS['age']):
+            return anonymize_age(value)  # Anonymize age
         else:
             return mask_text(value)  # Generic text masking
 
     elif isinstance(value, (int, float)):
-        return mask_numeric(value)  # Mask numeric data
+        # Handle numeric data for salary, CGPA, etc.
+        if column_name and any(keyword in column_name.lower() for keyword in MASK_KEYWORDS['salary']):
+            return randomize_salary(value)  # Randomize salary
+        elif column_name and any(keyword in column_name.lower() for keyword in MASK_KEYWORDS['cgpa']):
+            return value  # Leave CGPA unchanged
+        elif column_name and any(keyword in column_name.lower() for keyword in MASK_KEYWORDS['age']):
+            return anonymize_age(value)  # Anonymize age
+        else:
+            return mask_numeric(value)  # Mask numeric data
 
     elif isinstance(value, datetime.datetime):
-        return mask_date(value)  # Mask date data
+            return mask_date(value)  # Mask date data
 
     return value
 
@@ -168,6 +222,20 @@ def download_file(filename):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
