@@ -8,6 +8,7 @@ from flask_cors import CORS
 import pandas as pd
 from werkzeug.utils import secure_filename
 from faker import Faker
+import datetime
 
 app = Flask(__name__)
 CORS(app)
@@ -71,10 +72,19 @@ def anonymize_name_or_address(value, column_name=None):
             return fake.address()  # Generate a fake address
     return value
 
+def mask_date(value):
+    """
+    Mask date data by replacing it with a random date or placeholder.
+    """
+    if isinstance(value, datetime.datetime):
+        # Mask date by replacing it with a random date within a reasonable range, or a placeholder.
+        return fake.date_of_birth(minimum_age=18, maximum_age=100).strftime("%Y-%m-%d")
+    return value
+
 def mask_data(value, column_name=None):
     """
     Mask data based on the type of value and column name.
-    Apply appropriate masking logic for text and numeric data.
+    Apply appropriate masking logic for text, numeric, and date data.
     """
     if isinstance(value, str):
         value = value.strip()
@@ -89,8 +99,13 @@ def mask_data(value, column_name=None):
             return mask_phone(value)
         else:
             return mask_text(value)  # Generic text masking
+
     elif isinstance(value, (int, float)):
         return mask_numeric(value)  # Mask numeric data
+
+    elif isinstance(value, datetime.datetime):
+        return mask_date(value)  # Mask date data
+
     return value
 
 @app.route("/detect_columns", methods=["POST"])
@@ -153,6 +168,7 @@ def download_file(filename):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 
