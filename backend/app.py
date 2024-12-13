@@ -1,23 +1,21 @@
-from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
-import pandas as pd
-import os
 import re
+import os
 import random
 import string
 import json
+from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
+import pandas as pd
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 CORS(app)
 
-# Paths for uploaded and masked files
 UPLOAD_FOLDER_ORIGINAL = 'uploads/original'
 UPLOAD_FOLDER_MASKED = 'uploads/masked'
 app.config['UPLOAD_FOLDER_ORIGINAL'] = UPLOAD_FOLDER_ORIGINAL
 app.config['UPLOAD_FOLDER_MASKED'] = UPLOAD_FOLDER_MASKED
 
-# Create directories if they do not exist
 os.makedirs(UPLOAD_FOLDER_ORIGINAL, exist_ok=True)
 os.makedirs(UPLOAD_FOLDER_MASKED, exist_ok=True)
 
@@ -29,19 +27,34 @@ def allowed_file(filename):
 def sanitize_filename(filename):
     return secure_filename(filename)
 
+def mask_email(email):
+    local, domain = email.split("@")
+    local_masked = local[0] + '*' * (len(local) - 2) + local[-1] if len(local) > 2 else '*' * len(local)
+    return f"{local_masked}@{domain}"
+
+def mask_phone(phone):
+    return re.sub(r'\d', '*', phone[:-2]) + phone[-2:]
+
+def mask_numeric(value):
+    return int(''.join(random.choice(string.digits) for _ in str(int(value))))
+
+def mask_text(value):
+    if len(value) > 2:
+        return value[0] + '*' * (len(value) - 2) + value[-1]
+    else:
+        return '*' * len(value)
+
 def mask_data(value, column_name=None):
     if isinstance(value, str):
-        if re.match(r"[^@]+@[^@]+\.[^@]+", value):
-            local, domain = value.split("@")
-            local_masked = local[0] + '*' * (len(local) - 2) + local[-1] if len(local) > 2 else '*' * len(local)
-            return f"{local_masked}@{domain}"
-        if len(value) > 2:
-            return value[0] + '*' * (len(value) - 2) + value[-1]
+        value = value.strip()
+        if re.match(r"[^@]+@[^@]+\.[^@]+", value):  # Detect email
+            return mask_email(value)
+        elif re.match(r'\d{10,}', value):  # Detect phone numbers
+            return mask_phone(value)
         else:
-            return '*' * len(value)
+            return mask_text(value)  # Generic text masking
     elif isinstance(value, (int, float)):
-        num_str = str(int(value))
-        return int(''.join(random.choice(string.digits) for _ in num_str))
+        return mask_numeric(value)
     return value
 
 @app.route("/detect_columns", methods=["POST"])
@@ -88,7 +101,6 @@ def mask_data_route():
             else:
                 print(f"Warning: Column {column} not found in DataFrame.")
 
-        # Save the masked file in the masked folder
         masked_file_path = os.path.join(UPLOAD_FOLDER_MASKED, f"masked_{sanitize_filename(file.filename)}")
         if file.filename.endswith('.csv'):
             df.to_csv(masked_file_path, index=False)
@@ -105,6 +117,10 @@ def download_file(filename):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+
+
 
 
 
