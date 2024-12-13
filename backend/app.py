@@ -7,6 +7,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import pandas as pd
 from werkzeug.utils import secure_filename
+from faker import Faker
 
 app = Flask(__name__)
 CORS(app)
@@ -20,6 +21,9 @@ os.makedirs(UPLOAD_FOLDER_ORIGINAL, exist_ok=True)
 os.makedirs(UPLOAD_FOLDER_MASKED, exist_ok=True)
 
 ALLOWED_EXTENSIONS = {'csv', 'xlsx'}
+
+# Initialize Faker
+fake = Faker()
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -35,18 +39,50 @@ def mask_email(email):
 def mask_phone(phone):
     return re.sub(r'\d', '*', phone[:-2]) + phone[-2:]
 
-def mask_numeric(value):
-    return int(''.join(random.choice(string.digits) for _ in str(int(value))))
-
 def mask_text(value):
+    """
+    Mask general text data (e.g., names, addresses) partially.
+    Only show first and last character, replace the middle part with asterisks.
+    """
     if len(value) > 2:
         return value[0] + '*' * (len(value) - 2) + value[-1]
     else:
         return '*' * len(value)
 
+def mask_numeric(value):
+    """
+    Mask numeric data (e.g., phone numbers, IC numbers) by keeping only the first and last digits visible.
+    """
+    num_str = str(int(value))  # Convert to string to handle the digits properly
+    if len(num_str) > 2:
+        return num_str[0] + '*' * (len(num_str) - 2) + num_str[-1]
+    else:
+        return '*' * len(num_str)
+
+def anonymize_name_or_address(value, column_name=None):
+    """
+    Anonymize name and address-related data by using Faker to generate random fake data.
+    """
+    if column_name:
+        # Check if it's a name or address column (case insensitive)
+        if 'name' in column_name.lower():
+            return fake.name()  # Generate a fake name
+        elif 'address' in column_name.lower():
+            return fake.address()  # Generate a fake address
+    return value
+
 def mask_data(value, column_name=None):
+    """
+    Mask data based on the type of value and column name.
+    Apply appropriate masking logic for text and numeric data.
+    """
     if isinstance(value, str):
         value = value.strip()
+
+        # Check if the column is a name or address column (you can adjust these checks as needed)
+        if column_name and ('name' in column_name.lower() or 'address' in column_name.lower()):
+            return anonymize_name_or_address(value, column_name)
+
         if re.match(r"[^@]+@[^@]+\.[^@]+", value):  # Detect email
             return mask_email(value)
         elif re.match(r'\d{10,}', value):  # Detect phone numbers
@@ -54,7 +90,7 @@ def mask_data(value, column_name=None):
         else:
             return mask_text(value)  # Generic text masking
     elif isinstance(value, (int, float)):
-        return mask_numeric(value)
+        return mask_numeric(value)  # Mask numeric data
     return value
 
 @app.route("/detect_columns", methods=["POST"])
@@ -117,6 +153,21 @@ def download_file(filename):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
