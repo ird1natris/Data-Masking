@@ -10,6 +10,7 @@ function App() {
   const [isFileUploaded, setIsFileUploaded] = useState(false);
   const [isMaskingInProgress, setIsMaskingInProgress] = useState(false); // To track masking progress
   const [loadingMessage, setLoadingMessage] = useState(""); // Optional: Add message during loading
+  const [selectAll, setSelectAll] = useState(false); // To track the Select All checkbox state
 
   const handleFileUpload = async (e) => {
     const uploadedFile = e.target.files[0];
@@ -57,6 +58,15 @@ function App() {
     } else {
       setColumnsToMask([...columnsToMask, column]);
     }
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setColumnsToMask([]); // Deselect all
+    } else {
+      setColumnsToMask(columns); // Select all
+    }
+    setSelectAll(!selectAll); // Toggle Select All checkbox state
   };
 
   const handleMasking = async () => {
@@ -122,6 +132,17 @@ function App() {
       {isFileUploaded && (
         <div className="checkbox-list">
           <h3>Select columns to mask:</h3>
+          {/* "Select All" checkbox */}
+          <div className="checkbox-item">
+            <input
+              type="checkbox"
+              id="select-all"
+              checked={selectAll}
+              onChange={handleSelectAll}
+            />
+            <label htmlFor="select-all">Select All</label>
+          </div>
+
           {columns.map((column, index) => (
             <div key={index} className="checkbox-item">
               <input
@@ -160,6 +181,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
