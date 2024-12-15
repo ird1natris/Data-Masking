@@ -34,15 +34,15 @@ def sanitize_filename(filename):
 
 # Keywords to detect relevant columns for masking
 MASK_KEYWORDS = {
-    'name': ['name'],
-    'address': ['address'],
-    'email': ['email'],
-    'phone': ['phone'],
-    'ic': ['ic', 'id', 'passport'],
-    'salary': ['salary'],
-    'age': ['age'],
+    'name': ['name', 'maiden_name', 'lname', 'fname', 'nama'],
+    'address': ['address', 'city', 'state', 'alamat'],
+    'email': ['email', 'emel'],
+    'phone': ['phone', 'contact', 'nombor', 'telefon', 'no'],
+    'ic': ['ic', 'id', 'passport', 'number', 'no'],
+    'salary': ['salary', 'gaji'],
+    'age': ['age', 'umur'],
     'cgpa': ['cgpa'],
-    'date': ['birthdate', 'dob'],
+    'date': ['birthdate', 'dob', 'date'],
     'place_of_birth': ['place of birth', 'birth place', 'city of birth'],
     'department': ['department', 'class']
 }
@@ -79,9 +79,9 @@ def randomize_salary(value):
 def anonymize_name_or_address(value, column_name=None):
     """ Anonymize name and address-related data by using Faker to generate random fake data. """
     if column_name:
-        if 'name' in column_name.lower():
+        if 'name' in column_name.lower() or 'nama' in column_name.lower() or 'maiden_name' in column_name.lower() or 'lname' in column_name.lower() or 'fname' in column_name.lower():
             return fake.name()
-        elif 'address' in column_name.lower():
+        elif 'address' in column_name.lower() or 'alamat' in column_name.lower() or 'rumah' in column_name.lower():
             return fake.address()
         elif 'place of birth' in column_name.lower() or 'birth place' in column_name.lower():
             return fake.city()  # Mask place of birth with random city
@@ -109,7 +109,6 @@ def mask_date(value):
         return fake.date_of_birth(minimum_age=18, maximum_age=100).strftime("%d/%m/%Y")
     
     return value
-
 
 def anonymize_age(value):
     """ Anonymize age by generating a random age between 18 and 100. """
