@@ -36,6 +36,10 @@ gender_counter = 1  # Counter for pseudonymized values
 religion_pseudonym_mapping = defaultdict(lambda: None)
 religion_counter = 1  # Counter for pseudonymized values
 
+# Dictionary to store race pseudonym mappings
+race_pseudonym_mapping = defaultdict(lambda: None)
+race_counter = 1  # Counter for pseudonymized values
+
 # Define column header keywords for IC number
 IC_KEYWORDS = ['ic', 'identification', 'id', 'passport', 'ssn', 'personal id', 'national id', 'ic number', 'IC', 'mykad']
 
@@ -67,6 +71,9 @@ HEALTH_STATUS_KEYWORDS = ['health', 'status', 'health status', 'medical conditio
 
 # Define column header keywords for Religion
 RELIGION_KEYWORDS = ['religion', 'faith', 'religious', 'religion type', 'belief', 'agama', 'kepercayaan']
+
+# Define column header keywords for Race
+RACE_KEYWORDS = ['race', 'ethnicity', 'ethnic group', 'race/ethnicity', 'bangsa', 'kaum']
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -106,6 +113,21 @@ def pseudonymize_religion(value):
         religion_counter += 1
 
     return religion_pseudonym_mapping[normalized_value]
+
+def pseudonymize_race(value):
+    """Pseudonymize race as Race1, Race2, etc."""
+    global race_counter
+
+    # Normalize the race value for consistency
+    normalized_value = value.strip().lower() if isinstance(value, str) else str(value)
+
+    # Check if the value already has a pseudonym
+    if race_pseudonym_mapping[normalized_value] is None:
+        pseudonym = f"Race{race_counter}"
+        race_pseudonym_mapping[normalized_value] = pseudonym
+        race_counter += 1
+
+    return race_pseudonym_mapping[normalized_value]
 
 def pseudonymize_gender(value):
     """Pseudonymize gender as Gender1, Gender2, etc."""
@@ -260,7 +282,11 @@ def mask_data(value, column_name=None):
         column_name = preprocess_column_name(column_name)
         print(f"Processing column: {column_name} with value: {value}")  # Debugging line
 
-         # Fuzzy matching to detect religion-related columns
+        # Fuzzy matching to detect race-related columns
+        if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in RACE_KEYWORDS):
+            return pseudonymize_race(value)
+
+        # Fuzzy matching to detect religion-related columns
         if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in RELIGION_KEYWORDS):
             return pseudonymize_religion(value)
 
