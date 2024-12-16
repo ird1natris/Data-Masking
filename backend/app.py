@@ -45,6 +45,9 @@ NAME_KEYWORDS = ['name', 'full name', 'first name', 'last name', 'first', 'surna
 # Define column header keywords for phone numbers
 PHONE_KEYWORDS = ['phone', 'mobile', 'contact', 'telephone', 'cell', 'telefon', 'tel']
 
+# Define column header keywords for Place of Birth
+PLACE_OF_BIRTH_KEYWORDS = ['place of birth', 'birth place', 'birthplace', 'birth state', 'origin', 'tempat lahir', 'state of birth']
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -63,6 +66,18 @@ def mask_email(email):
     local, domain = email.split("@")
     local_masked = local[0] + '*' * (len(local) - 2) + local[-1] if len(local) > 2 else '*' * len(local)
     return f"{local_masked}@{domain}"
+
+def generate_fake_place_of_birth():
+    """Generate a fake state for place of birth."""
+    return fake.state()
+
+def mask_place_of_birth(value):
+    """Partially mask the place of birth."""
+    fake_state = generate_fake_place_of_birth()
+    if len(fake_state) > 2:
+        return fake_state[0] + '*' * (len(fake_state) - 2) + fake_state[-1]
+    else:
+        return '*' * len(fake_state)
 
 def generate_fake_phone_number():
     """Generate a fake phone number in the format (012-3456789)."""
@@ -190,7 +205,11 @@ def mask_data(value, column_name=None):
         column_name = preprocess_column_name(column_name)
         print(f"Processing column: {column_name} with value: {value}")  # Debugging line
 
- 	# Fuzzy matching to detect phone number-related columns
+        # Fuzzy matching to detect Place of Birth-related columns
+        if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in PLACE_OF_BIRTH_KEYWORDS):
+            return mask_place_of_birth(value)
+
+ 	    # Fuzzy matching to detect phone number-related columns
         if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in PHONE_KEYWORDS):
             fake_phone = generate_fake_phone_number()  # Generate a fake phone number
             return mask_phone(fake_phone)  # Mask the generated phone number
