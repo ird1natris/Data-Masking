@@ -32,6 +32,10 @@ fake = Faker()
 gender_pseudonym_mapping = defaultdict(lambda: None)
 gender_counter = 1  # Counter for pseudonymized values
 
+# Dictionary to store religion pseudonym mappings
+religion_pseudonym_mapping = defaultdict(lambda: None)
+religion_counter = 1  # Counter for pseudonymized values
+
 # Define column header keywords for IC number
 IC_KEYWORDS = ['ic', 'identification', 'id', 'passport', 'ssn', 'personal id', 'national id', 'ic number', 'IC', 'mykad']
 
@@ -61,6 +65,9 @@ GENDER_KEYWORDS = ['gender', 'sex', 'jenis kelamin', 'j.k.', 'sex/gender', 'gen'
 HEALTH_STATUS_KEYWORDS = ['health', 'status', 'health status', 'medical condition', 
                           'condition', 'health state', 'state of health', 'tahap kesihatan']
 
+# Define column header keywords for Religion
+RELIGION_KEYWORDS = ['religion', 'faith', 'religious', 'religion type', 'belief', 'agama', 'kepercayaan']
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -84,6 +91,21 @@ def generate_fake_health_status():
     """Generate a fake health status."""
     statuses = ["Healthy", "Under Observation", "Critical", "Recovering", "Needs Attention"]
     return random.choice(statuses)
+
+def pseudonymize_religion(value):
+    """Pseudonymize religion as Religion1, Religion2, etc."""
+    global religion_counter
+
+    # Normalize the religion value for consistency
+    normalized_value = value.strip().lower() if isinstance(value, str) else str(value)
+
+    # Check if the value already has a pseudonym
+    if religion_pseudonym_mapping[normalized_value] is None:
+        pseudonym = f"Religion{religion_counter}"
+        religion_pseudonym_mapping[normalized_value] = pseudonym
+        religion_counter += 1
+
+    return religion_pseudonym_mapping[normalized_value]
 
 def pseudonymize_gender(value):
     """Pseudonymize gender as Gender1, Gender2, etc."""
@@ -237,6 +259,10 @@ def mask_data(value, column_name=None):
     if column_name:
         column_name = preprocess_column_name(column_name)
         print(f"Processing column: {column_name} with value: {value}")  # Debugging line
+
+         # Fuzzy matching to detect religion-related columns
+        if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in RELIGION_KEYWORDS):
+            return pseudonymize_religion(value)
 
         # Fuzzy matching for Health Status-related columns
         if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in HEALTH_STATUS_KEYWORDS):
