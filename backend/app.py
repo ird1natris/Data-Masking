@@ -10,6 +10,7 @@ from werkzeug.utils import secure_filename
 from faker import Faker
 import datetime
 from fuzzywuzzy import fuzz
+from collections import defaultdict
 
 app = Flask(__name__)
 CORS(app)
@@ -26,6 +27,10 @@ ALLOWED_EXTENSIONS = {'csv', 'xlsx'}
 
 # Initialize Faker
 fake = Faker()
+
+# Dictionary to store gender pseudonym mappings
+gender_pseudonym_mapping = defaultdict(lambda: None)
+gender_counter = 1  # Counter for pseudonymized values
 
 # Define column header keywords for IC number
 IC_KEYWORDS = ['ic', 'identification', 'id', 'passport', 'ssn', 'personal id', 'national id', 'ic number', 'IC', 'mykad']
@@ -51,6 +56,8 @@ PLACE_OF_BIRTH_KEYWORDS = ['place', 'origin', 'tempat', 'state']
 # Define column header keywords for Birth Date
 BIRTH_DATE_KEYWORDS = ['date', 'dob', 'b-day', 'd.o.b.', 'tarikh']
 
+GENDER_KEYWORDS = ['gender', 'sex', 'jenis kelamin', 'j.k.', 'sex/gender', 'gen', 'jantina']
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -69,6 +76,21 @@ def mask_email(email):
     local, domain = email.split("@")
     local_masked = local[0] + '*' * (len(local) - 2) + local[-1] if len(local) > 2 else '*' * len(local)
     return f"{local_masked}@{domain}"
+
+def pseudonymize_gender(value):
+    """Pseudonymize gender as Gender1, Gender2, etc."""
+    global gender_counter
+
+    # Normalize the gender value for consistency
+    normalized_value = value.strip().lower() if isinstance(value, str) else str(value)
+
+    # Check if the value already has a pseudonym
+    if gender_pseudonym_mapping[normalized_value] is None:
+        pseudonym = f"Gender{gender_counter}"
+        gender_pseudonym_mapping[normalized_value] = pseudonym
+        gender_counter += 1
+
+    return gender_pseudonym_mapping[normalized_value]
 
 def generate_fake_place_of_birth():
     """Generate a fake state for place of birth."""
@@ -207,6 +229,10 @@ def mask_data(value, column_name=None):
     if column_name:
         column_name = preprocess_column_name(column_name)
         print(f"Processing column: {column_name} with value: {value}")  # Debugging line
+
+        # Fuzzy matching for gender-related columns
+        if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in GENDER_KEYWORDS):
+            return pseudonymize_gender(value)
 
         # Fuzzy matching to detect Birth Date-related columns
         if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in BIRTH_DATE_KEYWORDS):
