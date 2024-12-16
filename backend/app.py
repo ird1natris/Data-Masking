@@ -9,6 +9,7 @@ import pandas as pd
 from werkzeug.utils import secure_filename
 from faker import Faker
 import datetime
+from fuzzywuzzy import fuzz
 
 app = Flask(__name__)
 CORS(app)
@@ -26,28 +27,14 @@ ALLOWED_EXTENSIONS = {'csv', 'xlsx'}
 # Initialize Faker
 fake = Faker()
 
+# Define column header keywords for IC number
+IC_KEYWORDS = ['ic', 'identification', 'id', 'passport', 'ssn', 'personal id', 'national id', 'ic number', 'IC', 'mykad']
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def sanitize_filename(filename):
     return secure_filename(filename)
-
-# Keywords to detect relevant columns for masking
-MASK_KEYWORDS = {
-    'name': ['name', 'maiden_name', 'lname', 'fname', 'nama'],
-    'address': ['address', 'city', 'state', 'alamat', 'rumah'],
-    'email': ['email', 'emel'],
-    'phone': ['phone', 'contact', 'nombor', 'telefon', 'no'],
-    'ic': ['ic', 'id', 'passport', 'number', 'no'],
-    'salary': ['salary', 'gaji'],
-    'age': ['age', 'umur'],
-    'cgpa': ['cgpa'],
-    'date': ['birthdate', 'dob', 'date', 'expire', 'cc_expiredate', 'credit card expiration'],
-    'place_of_birth': ['place of birth', 'birth place', 'city of birth'],
-    'department': ['department', 'class'],
-    'city': ['city', 'town', 'locality'],
-    'state': ['state', 'region', 'province']
-}
 
 def preprocess_column_name(column_name):
     return column_name.strip().lower()
@@ -159,37 +146,26 @@ def mask_data(value, column_name=None):
     if column_name:
         column_name = preprocess_column_name(column_name)
         print(f"Processing column: {column_name} with value: {value}")  # Debugging line
-        # Explicit handling for columns that need special treatment
-        if column_name == 'cc_expiredate':
-            return mask_expiration_date(value)
-        if column_name == 'city':
-            return fake.city()  # Generate random city
-        if column_name == 'state':
-            return fake.state()  # Generate random state
-        if column_name == 'birthdate':
-            return mask_date(value)  # Handle birthdate with random dates
         
-        # Process other columns based on keywords
-        for key, keywords in MASK_KEYWORDS.items():
-            if any(keyword in column_name for keyword in keywords):
-                if key == 'name':
-                    return anonymize_name_or_address(value, column_name)
-                elif key == 'address':
-                    return anonymize_name_or_address(value, column_name)
-                elif key == 'email':
-                    return mask_email(value)
-                elif key == 'phone':
-                    return mask_phone(value)
-                elif key == 'ic':
-                    return mask_numeric(value)
-                elif key == 'salary':
-                    return randomize_salary(value)
-                elif key == 'age':
-                    return anonymize_age(value)
-                elif key == 'place_of_birth':
-                    return anonymize_name_or_address(value, column_name)
-                elif key == 'department':
-                    return fake.word()  # Mask department/class with random word
+        # Fuzzy matching to detect IC-related columns
+        if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in IC_KEYWORDS):
+            return mask_numeric(value)  # Apply the fake IC masking
+        
+        # Fallback to handling other columns
+        if 'name' in column_name or 'nama' in column_name:
+            return anonymize_name_or_address(value, column_name)
+        elif 'address' in column_name or 'alamat' in column_name:
+            return anonymize_name_or_address(value, column_name)
+        elif 'email' in column_name:
+            return mask_email(value)
+        elif 'phone' in column_name:
+            return mask_phone(value)
+        elif 'salary' in column_name:
+            return randomize_salary(value)
+        elif 'age' in column_name:
+            return anonymize_age(value)
+        elif 'place_of_birth' in column_name:
+            return anonymize_name_or_address(value, column_name)
 
     # Fallback for unmatched columns
     if isinstance(value, str):
@@ -260,6 +236,12 @@ def download_file(filename):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+
+
+
+
 
 
 
