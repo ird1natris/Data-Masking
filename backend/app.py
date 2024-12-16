@@ -39,6 +39,9 @@ ADDRESS_KEYWORDS = ['address', 'home address', 'residence', 'location', 'street'
 # Define column header keywords for age
 AGE_KEYWORDS = ['age', 'umur']
 
+# Define column header keywords for name
+NAME_KEYWORDS = ['name', 'full name', 'first name', 'last name', 'first', 'surname', 'nama', 'penuh', 'given name', 'fname', 'lname']
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -89,16 +92,17 @@ def randomize_salary(value):
     return value
 
 def anonymize_name_or_address(value, column_name=None):
-    """ Anonymize name and address-related data by using Faker to generate random fake data. """
+    """Generate a fake name and mask it partially."""
     if column_name:
         if 'name' in column_name.lower() or 'nama' in column_name.lower():
-            return fake.name()
+            fake_name = fake.name()
+            # Mask the name by keeping the first and last letters and replacing others with asterisks
+            name_parts = fake_name.split()
+            masked_name = " ".join([part[0] + '*' * (len(part) - 2) + part[-1] if len(part) > 2 else '*' * len(part) for part in name_parts])
+            return masked_name
         elif 'address' in column_name.lower() or 'alamat' in column_name.lower():
             return fake.address()
-        elif 'place of birth' in column_name.lower() or 'birth place' in column_name.lower():
-            return fake.city()  # Mask place of birth with random city
-        elif 'department' in column_name.lower():
-            return fake.word()  # Mask department with a random word
+        # Further anonymization logic for other types can follow
     return value
 
 def mask_address(address):
@@ -162,15 +166,15 @@ def mask_age_with_range(value):
 
     return f"{min_age}-{max_age}"  # Return the age range (e.g., "30-40")
 
-def generate_fake_email():
-    """Generate a fake email address."""
-    return fake.email()
-
 def mask_data(value, column_name=None):
     """ Mask data based on the type of value and column name. """
     if column_name:
         column_name = preprocess_column_name(column_name)
         print(f"Processing column: {column_name} with value: {value}")  # Debugging line
+        
+        # Fuzzy matching to detect name-related columns
+        if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in NAME_KEYWORDS):
+            return anonymize_name_or_address(value, column_name)  # Mask the generated name
         
         # Fuzzy matching to detect IC-related columns
         if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in IC_KEYWORDS):
@@ -271,6 +275,7 @@ def download_file(filename):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 
