@@ -42,6 +42,9 @@ AGE_KEYWORDS = ['age', 'umur']
 # Define column header keywords for name
 NAME_KEYWORDS = ['name', 'full name', 'first name', 'last name', 'first', 'surname', 'nama', 'penuh', 'given name', 'fname', 'lname']
 
+# Define column header keywords for phone numbers
+PHONE_KEYWORDS = ['phone', 'mobile', 'contact', 'telephone', 'cell', 'telefon', 'tel']
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -61,8 +64,23 @@ def mask_email(email):
     local_masked = local[0] + '*' * (len(local) - 2) + local[-1] if len(local) > 2 else '*' * len(local)
     return f"{local_masked}@{domain}"
 
+def generate_fake_phone_number():
+    """Generate a fake phone number in the format (012-3456789)."""
+    area_code = '012'  # You can randomize or use specific area codes
+    number = ''.join(random.choices(string.digits, k=7))  # Generate 7 random digits for the number
+    return f"({area_code})-{number}"
+
 def mask_phone(phone):
-    return re.sub(r'\d', '*', phone[:-2]) + phone[-2:]
+    """Mask phone number except the last two digits."""
+    # Ensure phone follows the pattern (012-3456789)
+    match = re.match(r'\((\d{3})\)-(\d{7})', phone)
+    if match:
+        area_code = match.group(1)
+        number = match.group(2)
+        # Mask all digits except for the last two
+        masked_number = f"({area_code})-{number[:-2]}{'*' * 2}{number[-2:]}"
+        return masked_number
+    return phone
 
 def mask_text(value):
     """ Mask general text data (e.g., names, addresses) partially. """
@@ -171,6 +189,11 @@ def mask_data(value, column_name=None):
     if column_name:
         column_name = preprocess_column_name(column_name)
         print(f"Processing column: {column_name} with value: {value}")  # Debugging line
+
+ 	# Fuzzy matching to detect phone number-related columns
+        if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in PHONE_KEYWORDS):
+            fake_phone = generate_fake_phone_number()  # Generate a fake phone number
+            return mask_phone(fake_phone)  # Mask the generated phone number
         
         # Fuzzy matching to detect name-related columns
         if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in NAME_KEYWORDS):
@@ -275,6 +298,13 @@ def download_file(filename):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+
+
+
+
+
 
 
 
