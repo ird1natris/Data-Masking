@@ -46,7 +46,10 @@ NAME_KEYWORDS = ['name', 'full name', 'first name', 'last name', 'first', 'surna
 PHONE_KEYWORDS = ['phone', 'mobile', 'contact', 'telephone', 'cell', 'telefon', 'tel']
 
 # Define column header keywords for Place of Birth
-PLACE_OF_BIRTH_KEYWORDS = ['place of birth', 'birth place', 'birthplace', 'birth state', 'origin', 'tempat lahir', 'state of birth']
+PLACE_OF_BIRTH_KEYWORDS = ['place', 'origin', 'tempat', 'state']
+
+# Define column header keywords for Birth Date
+BIRTH_DATE_KEYWORDS = ['date', 'dob', 'b-day', 'd.o.b.', 'tarikh']
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -204,6 +207,10 @@ def mask_data(value, column_name=None):
     if column_name:
         column_name = preprocess_column_name(column_name)
         print(f"Processing column: {column_name} with value: {value}")  # Debugging line
+
+        # Fuzzy matching to detect Birth Date-related columns
+        if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in BIRTH_DATE_KEYWORDS):
+            return mask_date(value)
 
         # Fuzzy matching to detect Place of Birth-related columns
         if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in PLACE_OF_BIRTH_KEYWORDS):
