@@ -33,6 +33,9 @@ IC_KEYWORDS = ['ic', 'identification', 'id', 'passport', 'ssn', 'personal id', '
 # Define column header keywords for email
 EMAIL_KEYWORDS = ['email', 'email address', 'email_id', 'contact', 'e-mail', 'email address', 'contact email', 'emel']
 
+# Define column header keywords for address
+ADDRESS_KEYWORDS = ['address', 'home address', 'residence', 'location', 'street', 'city', 'place of residence', 'alamat', 'rumah']
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -106,6 +109,24 @@ def anonymize_name_or_address(value, column_name=None):
             return fake.word()  # Mask department/class with a random word
     return value
 
+def mask_address(address):
+    """Partially mask the home address."""
+    if address:
+        # Split the address into lines (assuming address is multiline)
+        address_parts = address.split("\n")
+        masked_address = []
+        
+        for part in address_parts:
+            # Mask street name and city, but leave the general structure intact
+            if re.search(r'\d+', part):  # Likely a street number
+                masked_part = re.sub(r'\d+', '*', part)  # Mask street numbers
+            else:
+                masked_part = re.sub(r'\w+', '*', part)  # Mask each word with asterisks
+            masked_address.append(masked_part)
+        
+        return "\n".join(masked_address)
+    return address
+
 def mask_date(value):
     """
     Mask date data by replacing it with a random date within a reasonable range.
@@ -164,6 +185,12 @@ def mask_data(value, column_name=None):
             # If email-like column, generate and mask email
             fake_email = generate_fake_email()
             return mask_email(fake_email)  # Mask the generated email
+
+        # Fuzzy matching to detect address-related columns
+        if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in ADDRESS_KEYWORDS):
+            # If address-like column, generate and mask address
+            fake_address = fake.address()
+            return mask_address(fake_address)  # Mask the generated address
         
         # Fallback to handling other columns
         if 'name' in column_name or 'nama' in column_name:
@@ -248,6 +275,8 @@ def download_file(filename):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
 
 
 
