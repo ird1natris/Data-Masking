@@ -58,6 +58,9 @@ BIRTH_DATE_KEYWORDS = ['date', 'dob', 'b-day', 'd.o.b.', 'tarikh']
 
 GENDER_KEYWORDS = ['gender', 'sex', 'jenis kelamin', 'j.k.', 'sex/gender', 'gen', 'jantina']
 
+HEALTH_STATUS_KEYWORDS = ['health', 'status', 'health status', 'medical condition', 
+                          'condition', 'health state', 'state of health', 'tahap kesihatan']
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -76,6 +79,11 @@ def mask_email(email):
     local, domain = email.split("@")
     local_masked = local[0] + '*' * (len(local) - 2) + local[-1] if len(local) > 2 else '*' * len(local)
     return f"{local_masked}@{domain}"
+
+def generate_fake_health_status():
+    """Generate a fake health status."""
+    statuses = ["Healthy", "Under Observation", "Critical", "Recovering", "Needs Attention"]
+    return random.choice(statuses)
 
 def pseudonymize_gender(value):
     """Pseudonymize gender as Gender1, Gender2, etc."""
@@ -229,6 +237,10 @@ def mask_data(value, column_name=None):
     if column_name:
         column_name = preprocess_column_name(column_name)
         print(f"Processing column: {column_name} with value: {value}")  # Debugging line
+
+        # Fuzzy matching for Health Status-related columns
+        if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in HEALTH_STATUS_KEYWORDS):
+            return generate_fake_health_status()
 
         # Fuzzy matching for gender-related columns
         if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in GENDER_KEYWORDS):
