@@ -68,12 +68,29 @@ def mask_text(value):
         return '*' * len(value)
 
 def mask_numeric(value):
-    """ Mask numeric data (e.g., phone numbers, IC numbers) by keeping only the first and last digits visible. """
-    num_str = ''.join(re.findall(r'\d', str(value)))  # Remove non-numeric characters
-    if len(num_str) > 2:
-        return num_str[0] + '*' * (len(num_str) - 2) + num_str[-1]
-    else:
-        return '*' * len(num_str)
+    """Generate and mask a fake IC number."""
+    # Generate a fake IC number
+    fake_ic = generate_fake_ic_number()
+    
+    # Mask the fake IC, keeping the first and last digits visible
+    masked_ic = fake_ic[0] + '*' * (len(fake_ic) - 2) + fake_ic[-1]
+    
+    return masked_ic
+
+def generate_fake_ic_number():
+    """Generate a fake IC number in the format YYMMDD-XX-XXXX."""
+    # Generate random birthdate
+    random_date = fake.date_of_birth(minimum_age=18, maximum_age=100)
+    date_part = random_date.strftime("%y%m%d")
+    
+    # Generate random state code (01 to 14 or other valid codes)
+    state_code = f"{random.randint(1, 14):02d}"  # Ensures a two-digit state code
+    
+    # Generate a random 4-digit serial number
+    unique_identifier = f"{random.randint(0, 9999):04d}"
+    
+    # Combine all parts
+    return f"{date_part}-{state_code}-{unique_identifier}"
 
 def randomize_salary(value):
     """ Randomize salary data. """
@@ -243,6 +260,11 @@ def download_file(filename):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+
+
+
 
 
 
