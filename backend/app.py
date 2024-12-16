@@ -30,6 +30,9 @@ fake = Faker()
 # Define column header keywords for IC number
 IC_KEYWORDS = ['ic', 'identification', 'id', 'passport', 'ssn', 'personal id', 'national id', 'ic number', 'IC', 'mykad']
 
+# Define column header keywords for email
+EMAIL_KEYWORDS = ['email', 'email address', 'email_id', 'contact', 'e-mail', 'email address', 'contact email', 'emel']
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -39,7 +42,12 @@ def sanitize_filename(filename):
 def preprocess_column_name(column_name):
     return column_name.strip().lower()
 
+def generate_fake_email():
+    """Generate a fake email address."""
+    return fake.email()
+
 def mask_email(email):
+    """Mask the email address."""
     local, domain = email.split("@")
     local_masked = local[0] + '*' * (len(local) - 2) + local[-1] if len(local) > 2 else '*' * len(local)
     return f"{local_masked}@{domain}"
@@ -151,13 +159,17 @@ def mask_data(value, column_name=None):
         if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in IC_KEYWORDS):
             return mask_numeric(value)  # Apply the fake IC masking
         
+        # Fuzzy matching to detect email-related columns
+        if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in EMAIL_KEYWORDS):
+            # If email-like column, generate and mask email
+            fake_email = generate_fake_email()
+            return mask_email(fake_email)  # Mask the generated email
+        
         # Fallback to handling other columns
         if 'name' in column_name or 'nama' in column_name:
             return anonymize_name_or_address(value, column_name)
         elif 'address' in column_name or 'alamat' in column_name:
             return anonymize_name_or_address(value, column_name)
-        elif 'email' in column_name:
-            return mask_email(value)
         elif 'phone' in column_name:
             return mask_phone(value)
         elif 'salary' in column_name:
@@ -236,6 +248,7 @@ def download_file(filename):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 
