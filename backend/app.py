@@ -36,6 +36,9 @@ EMAIL_KEYWORDS = ['email', 'email address', 'email_id', 'contact', 'e-mail', 'em
 # Define column header keywords for address
 ADDRESS_KEYWORDS = ['address', 'home address', 'residence', 'location', 'street', 'city', 'place of residence', 'alamat', 'rumah']
 
+# Define column header keywords for age
+AGE_KEYWORDS = ['age', 'umur']
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -67,27 +70,16 @@ def mask_text(value):
 
 def mask_numeric(value):
     """Generate and mask a fake IC number."""
-    # Generate a fake IC number
     fake_ic = generate_fake_ic_number()
-    
-    # Mask the fake IC, keeping the first and last digits visible
     masked_ic = fake_ic[0] + '*' * (len(fake_ic) - 2) + fake_ic[-1]
-    
     return masked_ic
 
 def generate_fake_ic_number():
     """Generate a fake IC number in the format YYMMDD-XX-XXXX."""
-    # Generate random birthdate
     random_date = fake.date_of_birth(minimum_age=18, maximum_age=100)
     date_part = random_date.strftime("%y%m%d")
-    
-    # Generate random state code (01 to 14 or other valid codes)
-    state_code = f"{random.randint(1, 14):02d}"  # Ensures a two-digit state code
-    
-    # Generate a random 4-digit serial number
+    state_code = f"{random.randint(1, 14):02d}"
     unique_identifier = f"{random.randint(0, 9999):04d}"
-    
-    # Combine all parts
     return f"{date_part}-{state_code}-{unique_identifier}"
 
 def randomize_salary(value):
@@ -99,69 +91,53 @@ def randomize_salary(value):
 def anonymize_name_or_address(value, column_name=None):
     """ Anonymize name and address-related data by using Faker to generate random fake data. """
     if column_name:
-        if 'name' in column_name.lower() or 'nama' in column_name.lower() or 'maiden_name' in column_name.lower() or 'lname' in column_name.lower() or 'fname' in column_name.lower():
+        if 'name' in column_name.lower() or 'nama' in column_name.lower():
             return fake.name()
-        elif 'address' in column_name.lower() or 'alamat' in column_name.lower() or 'rumah' in column_name.lower():
+        elif 'address' in column_name.lower() or 'alamat' in column_name.lower():
             return fake.address()
         elif 'place of birth' in column_name.lower() or 'birth place' in column_name.lower():
             return fake.city()  # Mask place of birth with random city
-        elif 'department' in column_name.lower() or 'class' in column_name.lower():
-            return fake.word()  # Mask department/class with a random word
+        elif 'department' in column_name.lower():
+            return fake.word()  # Mask department with a random word
     return value
 
 def mask_address(address):
     """Partially mask the home address."""
     if address:
-        # Split the address into lines (assuming address is multiline)
         address_parts = address.split("\n")
         masked_address = []
-        
         for part in address_parts:
-            # Mask street name and city, but leave the general structure intact
             if re.search(r'\d+', part):  # Likely a street number
                 masked_part = re.sub(r'\d+', '*', part)  # Mask street numbers
             else:
                 masked_part = re.sub(r'\w+', '*', part)  # Mask each word with asterisks
             masked_address.append(masked_part)
-        
         return "\n".join(masked_address)
     return address
 
 def mask_date(value):
-    """
-    Mask date data by replacing it with a random date within a reasonable range.
-    If the value is not a valid date, it will return the original value.
-    """
+    """Mask date data by replacing it with a random date."""
     if isinstance(value, str):
-        # Try parsing the string as a date first
         try:
             value = datetime.datetime.strptime(value, "%d/%m/%Y")
         except ValueError:
             try:
                 value = datetime.datetime.strptime(value, "%Y-%m-%d")
             except ValueError:
-                return value  # Return original value if it's not a valid date format
-
+                return value
     if isinstance(value, datetime.datetime):
-        # Return a random date within a reasonable range (for Birth Date column)
         return fake.date_of_birth(minimum_age=18, maximum_age=100).strftime("%d/%m/%Y")
-    
     return value
 
 def mask_expiration_date(value):
-    """
-    Mask the expiration date in format "%d/%m/%Y" by generating a random expiration date.
-    """
+    """Mask expiration date."""
     if isinstance(value, str):
         try:
             value = datetime.datetime.strptime(value, "%d/%m/%Y")
         except ValueError:
-            return value  # If it's not in the correct format, return as is
-
+            return value
     if isinstance(value, datetime.datetime):
-        # Randomize credit card expiration dates and return in "%d/%m/%Y" format
         return fake.date_this_century(before_today=False, after_today=True).strftime("%d/%m/%Y")
-
     return value
 
 def anonymize_age(value):
@@ -169,6 +145,26 @@ def anonymize_age(value):
     if isinstance(value, int):
         return random.randint(18, 100)  # Randomize age between 18 and 100
     return value
+
+def generate_fake_age():
+    """Generate a fake age between 18 and 100."""
+    return random.randint(18, 100)
+
+def mask_age_with_range(value):
+    """ Mask age by generating a fake age and then masking it within a reasonable range. """
+    fake_age = generate_fake_age()  # Generate a fake age
+    min_age = fake_age - (fake_age % 10)  # Round down to the nearest decade (e.g., 37 -> 30)
+    max_age = min_age + 9  # Mask within a range (e.g., 30-39)
+
+    # Ensure the age is in a valid range
+    min_age = max(18, min_age)  # Minimum age should be at least 18
+    max_age = min(100, max_age)  # Maximum age should be at most 100
+
+    return f"{min_age}-{max_age}"  # Return the age range (e.g., "30-40")
+
+def generate_fake_email():
+    """Generate a fake email address."""
+    return fake.email()
 
 def mask_data(value, column_name=None):
     """ Mask data based on the type of value and column name. """
@@ -182,16 +178,18 @@ def mask_data(value, column_name=None):
         
         # Fuzzy matching to detect email-related columns
         if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in EMAIL_KEYWORDS):
-            # If email-like column, generate and mask email
             fake_email = generate_fake_email()
             return mask_email(fake_email)  # Mask the generated email
 
         # Fuzzy matching to detect address-related columns
         if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in ADDRESS_KEYWORDS):
-            # If address-like column, generate and mask address
             fake_address = fake.address()
             return mask_address(fake_address)  # Mask the generated address
-        
+
+        # Fuzzy matching to detect age-related columns
+        if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in AGE_KEYWORDS):
+            return mask_age_with_range(value)  # Apply the age masking
+
         # Fallback to handling other columns
         if 'name' in column_name or 'nama' in column_name:
             return anonymize_name_or_address(value, column_name)
@@ -201,8 +199,6 @@ def mask_data(value, column_name=None):
             return mask_phone(value)
         elif 'salary' in column_name:
             return randomize_salary(value)
-        elif 'age' in column_name:
-            return anonymize_age(value)
         elif 'place_of_birth' in column_name:
             return anonymize_name_or_address(value, column_name)
 
@@ -275,6 +271,9 @@ def download_file(filename):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+
 
 
 
