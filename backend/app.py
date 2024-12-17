@@ -78,6 +78,8 @@ RACE_KEYWORDS = ['race', 'ethnicity', 'ethnic group', 'race/ethnicity', 'bangsa'
 # Define column header keywords for Race
 SALARY_KEYWORDS = ['salary', 'income', 'gaji', 'pendapatan', 'source']
 
+CREDIT_CARD_KEYWORDS = ['credit card', 'cc', 'kredit', 'debit']
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -96,6 +98,12 @@ def mask_email(email):
     local, domain = email.split("@")
     local_masked = local[0] + '*' * (len(local) - 2) + local[-1] if len(local) > 2 else '*' * len(local)
     return f"{local_masked}@{domain}"
+
+def mask_credit_card(value):
+    """Mask credit card numbers by keeping the last four digits."""
+    if len(value) > 4:
+        return '*' * (len(value) - 4) + value[-4:]
+    return value
 
 def generate_fake_health_status():
     """Generate a fake health status."""
@@ -372,6 +380,10 @@ def mask_data(value, column_name=None):
         # Fuzzy matching to detect age-related columns
         if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in AGE_KEYWORDS):
             return mask_age_with_range(value)  # Apply the age masking
+        
+        # Fuzzy matching to detect credit card-related columns
+        if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in CREDIT_CARD_KEYWORDS):
+            return mask_credit_card(value)
 
         # Fallback to handling other columns
         if 'name' in column_name or 'nama' in column_name:
