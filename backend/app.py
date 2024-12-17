@@ -184,9 +184,6 @@ def mask_place_of_birth(value):
     else:
         return '*' * len(fake_state)
 
-import random
-import string
-
 def generate_fake_phone_number():
     """Generate a fake phone number with a randomized area code in the format (XXX-XXXXXXX)."""
     # List of possible area codes (you can expand this list)
