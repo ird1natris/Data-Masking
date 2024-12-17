@@ -1,4 +1,4 @@
-# SecurMask-Beta
+# Data-Masking
 
 **SecurMask-Beta** is a beta version of a web application designed for masking and unmasking sensitive data in CSV and XLSX files. This tool is built to help organizations and individuals protect sensitive information.
 
