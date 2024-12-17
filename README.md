@@ -1,6 +1,6 @@
-# Data-Masking
+# SecurMask-Lite
 
-**Data-Masking** is a beta version of a web application designed for masking and unmasking sensitive data in CSV and XLSX files. This tool is built to help organizations and individuals protect sensitive information.
+**SecurMask-Lite** is a beta version of a web application designed for masking and unmasking sensitive data in CSV and XLSX files. This tool is built to help organizations and individuals protect sensitive information.
 
 ## Features
 
@@ -29,8 +29,8 @@
 
 1. Clone the repository and navigate to the `backend` folder:
    ```bash
-   git clone https://github.com/ird1natris/SecurMask-Beta.git
-   cd SecurMask-Beta/backend
+   git clone https://github.com/ird1natris/SecurMask-Lite.git
+   cd SecurMask-Lite/backend
    ```
 
 2. Create and activate a virtual environment (optional):
@@ -83,8 +83,8 @@ The frontend app will run at `http://localhost:3000`.
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/ird1natris/SecurMask-Beta.git  
-cd SecurMask-Beta  
+git clone https://github.com/ird1natris/SecurMask-Lite.git  
+cd SecurMask-Lite  
 ```
 2. Work on the project, making changes locally.
 3. Push changes to the repository:
