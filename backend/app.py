@@ -156,10 +156,21 @@ def mask_place_of_birth(value):
     else:
         return '*' * len(fake_state)
 
+import random
+import string
+
 def generate_fake_phone_number():
-    """Generate a fake phone number in the format (012-3456789)."""
-    area_code = '012'  # You can randomize or use specific area codes
-    number = ''.join(random.choices(string.digits, k=7))  # Generate 7 random digits for the number
+    """Generate a fake phone number with a randomized area code in the format (XXX-XXXXXXX)."""
+    # List of possible area codes (you can expand this list)
+    area_codes = ['010', '011', '012', '013', '014', '015', '016', '017', '018', '019']
+    
+    # Randomly choose an area code
+    area_code = random.choice(area_codes)
+    
+    # Generate a random 7-digit number
+    number = ''.join(random.choices(string.digits, k=7))  # e.g., 3456789
+    
+    # Combine area code and number into the desired format
     return f"({area_code})-{number}"
 
 def mask_phone(phone):
@@ -167,11 +178,16 @@ def mask_phone(phone):
     # Ensure phone follows the pattern (012-3456789)
     match = re.match(r'\((\d{3})\)-(\d{7})', phone)
     if match:
-        area_code = match.group(1)
-        number = match.group(2)
+        area_code = match.group(1)  # Extract random area code
+        number = match.group(2)     # Extract random 7-digit number
+        
         # Mask all digits except for the last two
-        masked_number = f"({area_code})-{number[:-2]}{'*' * 2}{number[-2:]}"
-        return masked_number
+        masked_number = '*' * (len(number) - 2) + number[-2:]  # Mask all but the last two digits
+        
+        # Combine area code and masked number into the desired format
+        return f"({area_code})-{masked_number}"
+    
+    # Return phone unchanged if it doesn't match the pattern
     return phone
 
 def mask_text(value):
