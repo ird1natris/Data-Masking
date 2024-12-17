@@ -284,17 +284,6 @@ def mask_date(value):
         return fake.date_of_birth(minimum_age=18, maximum_age=100).strftime("%d/%m/%Y")
     return value
 
-def mask_expiration_date(value):
-    """Mask expiration date."""
-    if isinstance(value, str):
-        try:
-            value = datetime.datetime.strptime(value, "%d/%m/%Y")
-        except ValueError:
-            return value
-    if isinstance(value, datetime.datetime):
-        return fake.date_this_century(before_today=False, after_today=True).strftime("%d/%m/%Y")
-    return value
-
 def anonymize_age(value):
     """ Anonymize age by generating a random age between 18 and 100. """
     if isinstance(value, int):
@@ -382,23 +371,11 @@ def mask_data(value, column_name=None):
         if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in CREDIT_CARD_KEYWORDS):
             return mask_credit_card(value)
 
-        # Fallback to handling other columns
-        if 'name' in column_name or 'nama' in column_name:
-            return anonymize_name_or_address(value, column_name)
-        elif 'address' in column_name or 'alamat' in column_name:
-            return anonymize_name_or_address(value, column_name)
-        elif 'phone' in column_name:
-            return mask_phone(value)
-        elif 'salary' in column_name:
-            return randomize_salary(value)
-        elif 'place_of_birth' in column_name:
-            return anonymize_name_or_address(value, column_name)
-
     # Fallback for unmatched columns
     if isinstance(value, str):
-        return fake.text(max_nb_chars=20)
+        return '*****'
     elif isinstance(value, (int, float)):
-        return fake.random_int(min=1000, max=9999)
+        return '*****'
     elif isinstance(value, datetime.datetime):
         return mask_date(value)
     return fake.text(max_nb_chars=20)
