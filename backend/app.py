@@ -373,7 +373,7 @@ def mask_data(value, column_name=None):
 
     # Fallback for unmatched columns
     if isinstance(value, str):
-        return '*****'
+        return 'XXXXXX'
     elif isinstance(value, (int, float)):
         return '*****'
     elif isinstance(value, datetime.datetime):
