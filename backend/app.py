@@ -165,7 +165,8 @@ def pseudonymize_gender(value):
 
 def generate_fake_place_of_birth():
     """Generate a fake state for place of birth."""
-    return fake.state()
+    states = ["Kuala Lumpur", "Sarawak", "Johor Darul Ta'zim", "Penang", "Sabah", "Selangor", "Perak", "Negeri Sembilan", "Kedah", "Kelantan", "Pahang", "Terengganu", "Perlis", "Malacca"]
+    return random.choice(states)
 
 def mask_place_of_birth(value):
     """Partially mask the place of birth."""
