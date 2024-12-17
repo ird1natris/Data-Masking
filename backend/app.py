@@ -75,6 +75,9 @@ RELIGION_KEYWORDS = ['religion', 'faith', 'religious', 'religion type', 'belief'
 # Define column header keywords for Race
 RACE_KEYWORDS = ['race', 'ethnicity', 'ethnic group', 'race/ethnicity', 'bangsa', 'kaum']
 
+# Define column header keywords for Race
+SALARY_KEYWORDS = ['salary', 'income', 'gaji', 'pendapatan', 'source']
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -98,6 +101,22 @@ def generate_fake_health_status():
     """Generate a fake health status."""
     statuses = ["Healthy", "Under Observation", "Critical", "Recovering", "Needs Attention"]
     return random.choice(statuses)
+
+def generate_fake_salary():
+    """Generate a fake salary within a range."""
+    return random.randint(2000, 15000)  # Random salary between 2,000 and 15,000
+
+def mask_salary_with_range(value):
+    """Mask salary by generating a fake salary and then masking it within a reasonable range."""
+    fake_salary = generate_fake_salary()  # Generate a fake salary
+    min_salary = fake_salary - (fake_salary % 1000)  # Round down to the nearest 1000 (e.g., 5500 -> 5000)
+    max_salary = min_salary + 999  # Mask within a range (e.g., 5000-5999)
+
+    # Ensure salary is within valid range
+    min_salary = max(2000, min_salary)  # Minimum salary should be at least 2000
+    max_salary = min(15000, max_salary)  # Maximum salary should be at most 15,000
+
+    return f"{min_salary}-{max_salary}"  # Return the salary range (e.g., "5000-6000")
 
 def pseudonymize_religion(value):
     """Pseudonymize religion as Religion1, Religion2, etc."""
@@ -297,10 +316,14 @@ def mask_data(value, column_name=None):
     if column_name:
         column_name = preprocess_column_name(column_name)
         print(f"Processing column: {column_name} with value: {value}")  # Debugging line
-
+        
         # Fuzzy matching to detect race-related columns
         if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in RACE_KEYWORDS):
             return pseudonymize_race(value)
+        
+        # Fuzzy matching to detect salary-related columns
+        if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in SALARY_KEYWORDS):
+            return mask_salary_with_range(value)  # Apply the salary masking
 
         # Fuzzy matching to detect religion-related columns
         if any(fuzz.partial_ratio(column_name, keyword) > 80 for keyword in RELIGION_KEYWORDS):
