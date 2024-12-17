@@ -1,6 +1,6 @@
 # SecurMask-Lite
 
-**SecurMask-Lite** is a beta version of a web application designed for masking and unmasking sensitive data in CSV and XLSX files. This tool is built to help organizations and individuals protect sensitive information.
+**SecurMask-Lite** is a lite version of a web application designed for masking and unmasking sensitive data in CSV and XLSX files. This tool is built to help organizations and individuals protect sensitive information.
 
 ## Features
 
